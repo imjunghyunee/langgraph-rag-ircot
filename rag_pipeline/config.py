@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
-import openai
+
+# import openai
 
 
 def _get_bool(key: str, default: bool = False) -> bool:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import argparse, json, sys, ast
 from pathlib import Path
-from rag_pipeline.graph_builder import build_graph
+from rag_pipeline.graph_builder import build_graph, visualize_graph
 from rag_pipeline.graph_state import GraphState
 from langchain.schema import Document
 from typing import Any, List, Dict
@@ -11,8 +11,6 @@ import uuid
 
 # final_state에서 HumanMessage / AIMessage 객체를 문자열로 변환
 def convert_to_string(value):
-    from langchain.schema.messages import HumanMessage, AIMessage
-    from langchain.schema import Document
 
     if isinstance(value, (HumanMessage, AIMessage)):
         return value.content
@@ -32,6 +30,7 @@ def run(
     pdf_path: str | None = None,
     query_type: str | None = None,
     hybrid_weights: List[float] | None = None,
+    session_id: str | None = None,
 ):
     # The build_graph function returns a tuple of (graph, init_state)
     # Unpack it properly
@@ -39,6 +38,7 @@ def run(
         Path(pdf_path) if pdf_path else None,
         query_type if query_type else None,
         hybrid_weights,
+        session_id if session_id else None,
     )
 
     # Create our query-specific initial state
@@ -52,6 +52,9 @@ def run(
 
     # Convert final_state to JSON serializable format before printing or saving
     final_state_converted = convert_to_string(final_state)
+
+    # graph visualization
+    visualize_graph(graph)
 
     # for debugging
     print("\n===== 최종 답변 =====\n")
@@ -69,7 +72,7 @@ def run(
         "debug_state": final_state_converted,
     }
 
-    output_filename = f"output_{uuid.uuid4()}.json"
+    output_filename = f"./output/output_{uuid.uuid4()}.json"
     with open(output_filename, "w", encoding="utf-8") as f:
         json.dump(output_data, f, ensure_ascii=False, indent=2)
 
@@ -97,6 +100,7 @@ if __name__ == "__main__":
     p.add_argument(
         "--hybrid", help="hybrid retriever weights [float1,float2]", default=None
     )
+    p.add_argument("--session_id", help="session ID for state management", default=None)
     args = p.parse_args()
 
     hybrid_weights = None
@@ -117,4 +121,4 @@ if __name__ == "__main__":
     if hybrid_weights:
         print(f"Using hybrid retrieval with weights: {hybrid_weights}")
 
-    run(args.query, args.pdf, args.type, hybrid_weights)
+    run(args.query, args.pdf, args.type, hybrid_weights, args.session_id)

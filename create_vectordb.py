@@ -27,7 +27,7 @@ for doc in split_docs:
     print(f"{doc.metadata}", end="\n=====================\n")
 
 # 3. HuggingFace 임베딩 모델 정의
-embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embedding_model = HuggingFaceEmbeddings(model_name="jinaai/jina-embeddings-v3")
 
 # 4. FAISS vector DB 생성
 vectordb = FAISS.from_documents(split_docs, embedding_model)

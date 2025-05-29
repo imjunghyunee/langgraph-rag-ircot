@@ -4,6 +4,9 @@ from langgraph.graph import StateGraph, END
 from rag_pipeline.graph_state import GraphState
 from rag_pipeline import nodes
 from typing import List, Optional
+import nest_asyncio
+from IPython.display import Image, display
+from langchain_core.runnables.graph import CurveStyle, MermaidDrawMethod, NodeStyles
 
 
 def build_graph(
@@ -21,6 +24,7 @@ def build_graph(
 
     if session_id:
         init_state["session_id"] = session_id
+        init_state["is_new_chat"] = False
 
     if hybrid_weights:
         init_state["hybrid_weights"] = hybrid_weights
@@ -94,3 +98,26 @@ def build_graph(
     g.add_edge("compile_ircot_answer", END)
 
     return g.compile(), init_state
+
+
+# graph visualization
+def visualize_graph(
+    graph: StateGraph, output_path: Path = Path("./workflow_graph.png")
+):
+    nest_asyncio.apply()
+
+    display(
+        Image(
+            graph.get_graph().draw_mermaid_png(
+                curve_style=CurveStyle.LINEAR,
+                node_colors=NodeStyles(
+                    first="#ffdfba", last="#baffc9", default="#fad7de"
+                ),
+                wrap_label_n_words=9,
+                output_file_path=None,
+                draw_method=MermaidDrawMethod.PYPPETEER,
+                background_color="white",
+                padding=10,
+            )
+        )
+    )
